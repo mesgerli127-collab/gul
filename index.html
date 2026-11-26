@@ -1,0 +1,1719 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#050406">
+<title>Çiçek Buketi Atölyesi 🌹</title>
+<style>
+/* ==========================================================================
+   0. RESET & DEĞİŞKENLER
+   ========================================================================== */
+*,*::before,*::after{ box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+html,body{ height:100%; margin:0; }
+:root{
+  --bg-deep:#050406;
+  --ink:#f6eef1;
+  --rose:#e0446b;
+  --rose-soft:#ff9ab8;
+  --gold:#d9b382;
+  --glass:rgba(255,255,255,.045);
+  --stroke:rgba(255,255,255,.10);
+  --s:1;
+  --stage-w:600px;
+  --stage-h:420px;
+}
+body{
+  background:
+    radial-gradient(ellipse 90% 55% at 50% 6%, #240d18 0%, rgba(20,8,14,0) 62%),
+    radial-gradient(ellipse 70% 45% at 50% 100%, #12060c 0%, rgba(8,4,7,0) 70%),
+    linear-gradient(180deg,#0a0508 0%, #050406 45%, #040305 100%);
+  color:var(--ink);
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow:hidden;
+  overscroll-behavior:none;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ==========================================================================
+   1. ARKA PLAN KATMANI
+   ========================================================================== */
+#bg{
+  position:fixed; inset:0;
+  width:100%; height:100%;
+  z-index:0;
+  pointer-events:none;
+  opacity:.95;
+}
+.vignette{
+  position:fixed; inset:0; z-index:1; pointer-events:none;
+  background:radial-gradient(ellipse 75% 60% at 50% 42%, transparent 35%, rgba(0,0,0,.55) 100%);
+  transition:opacity 1.2s ease;
+}
+.app.final .vignette{ opacity:1; background:radial-gradient(ellipse 70% 58% at 50% 42%, rgba(255,90,140,.06) 0%, rgba(0,0,0,.72) 100%); }
+
+/* ==========================================================================
+   2. ANA YERLEŞİM
+   ========================================================================== */
+.app{
+  position:relative; z-index:2;
+  height:100vh; height:100dvh;
+  display:flex; flex-direction:column;
+  padding: 8px clamp(8px,2.2vw,26px) max(8px, env(safe-area-inset-bottom));
+  gap:4px;
+}
+
+/* Üst marka */
+.topbar{
+  flex:0 0 auto;
+  display:flex; justify-content:center;
+  padding:2px 0 0;
+  pointer-events:none;
+}
+.brand{
+  font-size:9.5px; letter-spacing:.42em; text-transform:uppercase;
+  color:rgba(255,255,255,.30);
+  font-weight:600;
+  padding-left:.42em;
+  transition:opacity .6s;
+}
+.app.final .brand{ opacity:0; }
+
+/* Sahne */
+.stage{
+  flex:1 1 auto;
+  min-height:0;
+  display:flex;
+  align-items:flex-end;
+  justify-content:center;
+  position:relative;
+}
+
+/* ==========================================================================
+   3. BUKET SAHNESİ (ölçeklenen katman)
+   ========================================================================== */
+.bstage-wrap{
+  position:relative;
+  flex:0 0 auto;
+  width:calc(var(--stage-w) * var(--s));
+  height:calc(var(--stage-h) * var(--s));
+}
+.bstage{
+  position:absolute; left:0; bottom:0;
+  width:var(--stage-w); height:var(--stage-h);
+  transform:scale(var(--s));
+  transform-origin:left bottom;
+  transition:filter 1.4s ease;
+}
+.app.final .bstage{ filter:drop-shadow(0 0 26px rgba(255,90,140,.22)); }
+
+/* Arka ışık halesi */
+.glow{
+  position:absolute; left:50%; bottom:40px;
+  width:560px; height:440px;
+  margin-left:-280px;
+  background:
+    radial-gradient(ellipse 50% 46% at 50% 62%, rgba(255,110,155,.22), rgba(255,110,155,.07) 42%, transparent 72%),
+    radial-gradient(ellipse 30% 26% at 50% 55%, rgba(255,190,215,.16), transparent 70%);
+  filter:blur(14px);
+  pointer-events:none;
+  transition:opacity 1.2s ease, transform 1.2s ease;
+  opacity:1;
+}
+.app.final .glow{ opacity:1.5; transform:scale(1.08); }
+
+/* Buket */
+.bouquet{
+  position:absolute; inset:0;
+  pointer-events:none;
+}
+
+/* ---- Tek çiçek ---- */
+.flower{
+  position:absolute;
+  left:50%;
+  bottom:calc(34px + var(--jy,0px));
+  width:120px; height:340px;
+  margin-left:-60px;
+  transform-origin:50% 100%;
+  transform:rotate(var(--rot,0deg));
+  transition: transform .78s cubic-bezier(.25,.9,.3,1);
+  pointer-events:none;
+  backface-visibility:hidden;
+}
+.flower-inner{
+  position:absolute; inset:0;
+  transform-origin:50% 100%;
+  animation: sway var(--sway,5s) ease-in-out infinite alternate;
+}
+@keyframes sway{
+  from{ transform:rotate(-1.15deg); }
+  to  { transform:rotate(1.15deg); }
+}
+.flower .stem{
+  position:absolute; inset:0;
+  width:100%; height:100%;
+  overflow:visible;
+}
+.flower .bloom{
+  position:absolute; top:0; left:0;
+  width:120px; height:120px;
+  transform-origin:50% 50%;
+  animation: bloomIn .85s cubic-bezier(.2,1.05,.35,1) .88s both;
+  filter:drop-shadow(0 5px 9px rgba(0,0,0,.5));
+}
+.flower .bloom svg{ width:100%; height:100%; display:block; overflow:visible; }
+
+@keyframes bloomIn{
+  from{ transform:scale(calc(var(--bs,1) * .28)) rotate(-22deg); opacity:0; }
+  to  { transform:scale(var(--bs,1)) rotate(0deg);        opacity:1; }
+}
+
+/* Gövde büyümesi */
+.stem-path{
+  stroke-dasharray:1;
+  stroke-dashoffset:1;
+  animation: stemGrow 1.05s cubic-bezier(.35,.75,.35,1) forwards;
+}
+@keyframes stemGrow{ to{ stroke-dashoffset:0; } }
+
+/* Yaprak açılımı */
+.leaf{
+  transform-box:fill-box;
+  transform-origin:50% 100%;
+  animation: leafIn .6s cubic-bezier(.2,1.25,.4,1) both;
+}
+@keyframes leafIn{
+  from{ transform:scale(0) rotate(-24deg); opacity:0; }
+  to  { transform:scale(1) rotate(0deg);   opacity:1; }
+}
+
+/* Taç yaprak açılımı */
+.pt{
+  transform-box:view-box;
+  transform-origin:50% 50%;
+  animation: petalOpen .9s cubic-bezier(.2,.9,.3,1) both;
+}
+@keyframes petalOpen{
+  from{ transform:scale(.05) rotate(-16deg); opacity:0; }
+  55% { opacity:1; }
+  to  { transform:scale(1) rotate(0deg);     opacity:1; }
+}
+
+/* Çiçek çıkış animasyonu */
+.flower.out{
+  animation: flowerOut .52s cubic-bezier(.4,0,.6,1) forwards;
+  transition:none;
+}
+@keyframes flowerOut{
+  0%  { opacity:1; transform:rotate(var(--rot)) scale(1); }
+  100%{ opacity:0; transform:rotate(var(--rot)) scale(.25) translateY(24px); }
+}
+
+/* ---- Buket sargısı ---- */
+.wrap{
+  position:absolute; left:50%; bottom:-8px;
+  width:250px; height:180px;
+  margin-left:-125px;
+  z-index:600;
+  pointer-events:none;
+  filter:drop-shadow(0 -4px 22px rgba(0,0,0,.7));
+}
+.wrap svg{ width:100%; height:100%; display:block; overflow:visible; }
+
+/* Kurdele */
+.ribbon-g{
+  transform-origin:125px 84px;
+  transition:transform 1s cubic-bezier(.2,1.2,.3,1), opacity .8s;
+}
+.app.final .ribbon-g{
+  animation: ribbonPulse 1.5s cubic-bezier(.2,1.2,.3,1) .3s both;
+}
+@keyframes ribbonPulse{
+  0%  { transform:scale(1); }
+  45% { transform:scale(1.14); }
+  100%{ transform:scale(1.04); }
+}
+
+/* ==========================================================================
+   4. AKSESUAR KATMANI (kalp, kelebek, parıltı, yıldız)
+   ========================================================================== */
+.deco{ position:absolute; inset:0; pointer-events:none; overflow:visible; }
+
+/* Kalpler */
+.deco-hearts{ position:absolute; inset:0; opacity:0; transition:opacity .6s; }
+.deco-hearts.on{ opacity:1; }
+.deco-hearts i{
+  position:absolute;
+  left:var(--x); bottom:var(--y);
+  width:9px; height:9px;
+  background:#e0446b;
+  transform:rotate(45deg);
+  border-radius:1px;
+  opacity:0;
+  animation:floatHeart var(--dur,10s) linear var(--del,0s) infinite;
+  filter:drop-shadow(0 0 6px rgba(224,68,107,.8));
+}
+.deco-hearts i::before,
+.deco-hearts i::after{
+  content:''; position:absolute; width:9px; height:9px; border-radius:50%;
+  background:inherit;
+}
+.deco-hearts i::before{ left:-4.5px; top:0; }
+.deco-hearts i::after { left:0; top:-4.5px; }
+@keyframes floatHeart{
+  0%  { opacity:0; transform:translateY(0) rotate(45deg) scale(.6); }
+  12% { opacity:.85; }
+  80% { opacity:.6; }
+  100%{ opacity:0; transform:translateY(-180px) rotate(45deg) scale(1.05); }
+}
+
+/* Kelebekler */
+.deco-butterflies{ position:absolute; inset:0; opacity:0; transition:opacity .6s; }
+.deco-butterflies.on{ opacity:1; }
+.bfly{
+  position:absolute;
+  left:var(--x); bottom:var(--y);
+  width:16px; height:12px;
+  animation:flyPath var(--dur,14s) ease-in-out var(--del,0s) infinite;
+  opacity:0;
+}
+.bfly span{
+  position:absolute; top:0; width:8px; height:12px;
+  background:linear-gradient(180deg, rgba(255,180,210,.95), rgba(224,68,107,.75));
+  border-radius:60% 60% 45% 45%;
+  transform-origin:100% 50%;
+  animation:flapL .38s ease-in-out infinite alternate;
+  filter:drop-shadow(0 0 5px rgba(255,140,180,.6));
+}
+.bfly span:nth-child(1){ left:0; }
+.bfly span:nth-child(2){ right:0; transform-origin:0% 50%; animation-name:flapR; }
+@keyframes flapL{ from{ transform:rotateY(0deg) } to{ transform:rotateY(72deg) } }
+@keyframes flapR{ from{ transform:rotateY(0deg) } to{ transform:rotateY(-72deg) } }
+@keyframes flyPath{
+  0%  { opacity:0; transform:translate(0,0) scale(.7); }
+  10% { opacity:.95; }
+  50% { opacity:.85; transform:translate(var(--dx,40px), -60px) scale(1); }
+  90% { opacity:.6; }
+  100%{ opacity:0; transform:translate(0,-120px) scale(.7); }
+}
+
+/* Parıltılar */
+.deco-sparkles{ position:absolute; inset:0; opacity:0; transition:opacity .6s; }
+.deco-sparkles.on{ opacity:1; }
+.deco-sparkles i{
+  position:absolute;
+  left:var(--x); bottom:var(--y);
+  width:3px; height:3px; border-radius:50%;
+  background:#ffe3ee;
+  box-shadow:0 0 8px 2px rgba(255,150,190,.85);
+  animation:twinkle var(--dur,4s) ease-in-out var(--del,0s) infinite;
+}
+@keyframes twinkle{
+  0%,100%{ opacity:0; transform:scale(.4); }
+  50%    { opacity:1; transform:scale(1.15); }
+}
+
+/* Yıldızlar */
+.deco-stars{ position:absolute; inset:0; opacity:0; transition:opacity .6s; }
+.deco-stars.on{ opacity:1; }
+.deco-stars i{
+  position:absolute;
+  left:var(--x); bottom:var(--y);
+  width:0; height:0;
+  animation:starTwinkle var(--dur,6s) ease-in-out var(--del,0s) infinite;
+}
+.deco-stars i::before{
+  content:'✦';
+  position:absolute;
+  font-size:11px;
+  color:#fff2f7;
+  text-shadow:0 0 10px rgba(255,170,205,.95);
+  transform:translate(-50%,-50%);
+  font-style:normal;
+}
+@keyframes starTwinkle{
+  0%,100%{ opacity:0; transform:scale(.5) rotate(0deg); }
+  50%    { opacity:1; transform:scale(1) rotate(45deg); }
+}
+
+/* ==========================================================================
+   5. İSİM ALANI
+   ========================================================================== */
+.namerow{
+  flex:0 0 auto;
+  position:relative;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:clamp(38px, 7.4vh, 66px);
+  padding:0 10px;
+}
+.name{
+  font-family: "Didot", "Playfair Display", Georgia, "Times New Roman", serif;
+  font-size:clamp(24px, 5.4vw, 46px);
+  font-weight:400;
+  letter-spacing:.24em;
+  padding-left:.24em;
+  text-transform:uppercase;
+  color:#fff;
+  display:flex; align-items:center; justify-content:center;
+  white-space:nowrap;
+  max-width:100%;
+  overflow:hidden;
+  text-shadow:
+    0 0 16px rgba(255,140,180,.55),
+    0 0 42px rgba(255,80,140,.28);
+  transition:text-shadow 1s ease;
+}
+.name span{
+  display:inline-block;
+  animation: letterIn .55s cubic-bezier(.2,1.5,.4,1) both;
+}
+@keyframes letterIn{
+  from{ opacity:0; transform:translateY(16px) scale(.55) rotate(-6deg); filter:blur(6px); }
+  to  { opacity:1; transform:none; filter:blur(0); }
+}
+.name span.out{
+  animation: letterOut .34s cubic-bezier(.5,0,.75,0) forwards;
+}
+@keyframes letterOut{
+  to{ opacity:0; transform:translateY(-14px) scale(.5) rotate(8deg); filter:blur(5px); }
+}
+.hint{
+  position:absolute; left:50%; top:50%;
+  transform:translate(-50%,-50%);
+  font-size:9.5px; letter-spacing:.36em; padding-left:.36em;
+  text-transform:uppercase;
+  color:rgba(255,255,255,.20);
+  font-weight:600;
+  pointer-events:none;
+  transition:opacity .45s;
+  white-space:nowrap;
+}
+.hint.hide{ opacity:0; }
+.app.final .name{
+  text-shadow:
+    0 0 22px rgba(255,160,195,.95),
+    0 0 60px rgba(255,90,150,.6),
+    0 0 110px rgba(255,60,120,.35);
+  animation:nameGlow 3s ease-in-out infinite alternate;
+}
+@keyframes nameGlow{
+  from{ filter:brightness(1); }
+  to  { filter:brightness(1.18); }
+}
+
+/* ==========================================================================
+   6. KLAVYE & KONTROLLER
+   ========================================================================== */
+.panel{
+  flex:0 0 auto;
+  position:relative;
+  display:flex; flex-direction:column;
+  gap:7px;
+  align-items:center;
+  padding-top:2px;
+}
+.kb{
+  width:100%;
+  max-width:640px;
+  display:flex; flex-direction:column;
+  gap:5px;
+}
+.kb-row{
+  display:flex;
+  gap:5px;
+  justify-content:center;
+}
+.key{
+  position:relative;
+  flex:1 1 0;
+  min-width:0;
+  max-width:58px;
+  aspect-ratio:1 / 1.18;
+  border-radius:11px;
+  border:1px solid rgba(255,255,255,.09);
+  background:linear-gradient(180deg, rgba(255,255,255,.075), rgba(255,255,255,.015));
+  cursor:pointer;
+  overflow:hidden;
+  padding:0;
+  transition:transform .13s cubic-bezier(.3,1.4,.5,1), background .25s, border-color .25s, box-shadow .25s;
+  -webkit-user-select:none; user-select:none;
+  display:block;
+}
+.key::after{
+  content:'';
+  position:absolute; inset:0;
+  border-radius:inherit;
+  background:radial-gradient(circle at 50% 42%, var(--c,#e0446b) 0%, transparent 68%);
+  opacity:0;
+  transition:opacity .3s;
+  mix-blend-mode:screen;
+}
+.key:hover{
+  border-color:rgba(255,255,255,.22);
+  background:linear-gradient(180deg, rgba(255,255,255,.13), rgba(255,255,255,.035));
+  box-shadow:0 6px 20px -8px rgba(255,110,160,.55);
+}
+.key:hover::after{ opacity:.30; }
+.key:active{
+  transform:scale(.90);
+  border-color:rgba(255,160,195,.5);
+}
+.key .preview{
+  position:absolute;
+  inset:3px 3px 13px;
+  display:flex; align-items:center; justify-content:center;
+}
+.key .preview svg{
+  width:100%; height:100%;
+  display:block;
+  overflow:visible;
+  transition:transform .3s cubic-bezier(.3,1.3,.5,1);
+}
+.key:hover .preview svg{ transform:scale(1.10) rotate(4deg); }
+.key .letter{
+  position:absolute;
+  left:0; right:0; bottom:2px;
+  text-align:center;
+  font-size:9px;
+  font-weight:700;
+  letter-spacing:.06em;
+  color:rgba(255,255,255,.48);
+  transition:color .25s;
+  line-height:1.2;
+}
+.key:hover .letter{ color:rgba(255,255,255,.9); }
+
+/* Önizlemelerde animasyon yok */
+.preview .pt,
+.preview .leaf,
+.preview .stem-path{ animation:none !important; opacity:1 !important; transform:none !important; stroke-dashoffset:0 !important; }
+
+/* Aksiyon butonları */
+.actions{
+  position:relative;
+  display:flex;
+  gap:6px;
+  flex-wrap:wrap;
+  justify-content:center;
+  width:100%;
+  max-width:640px;
+}
+.btn{
+  appearance:none;
+  border:1px solid rgba(255,255,255,.11);
+  background:linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.015));
+  color:rgba(255,255,255,.72);
+  font:600 9.5px/1 system-ui, -apple-system, "Segoe UI", sans-serif;
+  letter-spacing:.12em;
+  padding:9px 11px;
+  border-radius:999px;
+  cursor:pointer;
+  white-space:nowrap;
+  text-transform:uppercase;
+  transition:transform .15s cubic-bezier(.3,1.4,.5,1), background .25s, color .25s, border-color .25s, box-shadow .25s;
+  -webkit-user-select:none; user-select:none;
+}
+.btn:hover{
+  background:rgba(255,255,255,.11);
+  color:#fff;
+  border-color:rgba(255,255,255,.24);
+  box-shadow:0 6px 18px -8px rgba(255,255,255,.4);
+}
+.btn:active{ transform:scale(.93); }
+.btn.primary{
+  background:linear-gradient(180deg,#e0446b,#a81e44);
+  border-color:rgba(255,160,190,.55);
+  color:#fff;
+  box-shadow:0 8px 24px -8px rgba(224,68,107,.95);
+  letter-spacing:.2em;
+  padding-left:16px; padding-right:16px;
+}
+.btn.primary:hover{
+  background:linear-gradient(180deg,#f05579,#bb2650);
+  box-shadow:0 10px 30px -8px rgba(224,68,107,1);
+}
+.btn.on{
+  background:rgba(224,68,107,.20);
+  border-color:rgba(224,68,107,.6);
+  color:#ffc9d9;
+}
+
+/* Aksesuar paneli */
+.acc-panel{
+  position:absolute;
+  bottom:calc(100% + 10px);
+  left:50%;
+  width:min(300px, 88vw);
+  transform:translate(-50%, 10px);
+  opacity:0;
+  pointer-events:none;
+  background:rgba(16,9,14,.94);
+  border:1px solid rgba(255,255,255,.11);
+  border-radius:16px;
+  padding:12px 14px;
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+  box-shadow:0 24px 60px -18px rgba(0,0,0,.95), 0 0 0 1px rgba(255,120,160,.06) inset;
+  transition:opacity .3s ease, transform .35s cubic-bezier(.2,1.2,.4,1);
+  z-index:900;
+}
+.acc-panel.open{
+  opacity:1;
+  transform:translate(-50%, 0);
+  pointer-events:auto;
+}
+.acc-title{
+  font-size:8.5px; letter-spacing:.3em; text-transform:uppercase;
+  color:rgba(255,255,255,.35); margin-bottom:9px; font-weight:700;
+}
+.acc-row{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:6px 2px;
+  font-size:11px;
+  letter-spacing:.05em;
+  color:rgba(255,255,255,.78);
+  cursor:pointer;
+  border-bottom:1px solid rgba(255,255,255,.05);
+}
+.acc-row:last-child{ border-bottom:none; }
+.switch{
+  position:relative;
+  width:32px; height:18px;
+  border-radius:999px;
+  background:rgba(255,255,255,.12);
+  transition:background .3s;
+  flex:0 0 auto;
+}
+.switch::after{
+  content:'';
+  position:absolute;
+  top:2px; left:2px;
+  width:14px; height:14px;
+  border-radius:50%;
+  background:#fff;
+  transition:transform .3s cubic-bezier(.3,1.4,.5,1), background .3s;
+}
+.acc-row input{ display:none; }
+.acc-row input:checked + .switch{ background:rgba(224,68,107,.85); box-shadow:0 0 14px rgba(224,68,107,.6); }
+.acc-row input:checked + .switch::after{ transform:translateX(14px); background:#fff0f5; }
+
+/* ==========================================================================
+   7. TOAST (final mesajı)
+   ========================================================================== */
+.toast{
+  position:fixed;
+  top:max(16px, env(safe-area-inset-top));
+  left:50%;
+  transform:translate(-50%,-18px);
+  opacity:0;
+  pointer-events:none;
+  z-index:60;
+  max-width:min(420px, 90vw);
+  text-align:center;
+  font-family:"Didot", Georgia, "Times New Roman", serif;
+  font-size:clamp(12px, 3.1vw, 15px);
+  letter-spacing:.06em;
+  line-height:1.65;
+  color:#ffe6ee;
+  padding:12px 22px;
+  border-radius:999px;
+  background:rgba(24,10,18,.82);
+  border:1px solid rgba(255,140,180,.22);
+  backdrop-filter:blur(16px);
+  -webkit-backdrop-filter:blur(16px);
+  box-shadow:0 18px 50px -18px rgba(0,0,0,.9), 0 0 40px -10px rgba(255,90,140,.35);
+  transition:opacity .9s ease, transform .9s cubic-bezier(.2,1.1,.3,1);
+}
+.toast.show{ opacity:1; transform:translate(-50%,0); }
+
+/* ==========================================================================
+   8. RESPONSIVE
+   ========================================================================== */
+@media (max-width: 620px){
+  .key{ border-radius:9px; }
+  .key .preview{ inset:2px 2px 11px; }
+  .key .letter{ font-size:8px; bottom:1px; }
+  .kb-row{ gap:4px; }
+  .kb{ gap:4px; }
+  .btn{ padding:8px 9px; font-size:8.5px; letter-spacing:.08em; }
+  .btn.primary{ padding-left:14px; padding-right:14px; }
+  .actions{ gap:5px; }
+  .name{ letter-spacing:.18em; padding-left:.18em; }
+}
+@media (max-width: 380px){
+  .btn{ padding:7px 8px; font-size:8px; }
+  .key .letter{ font-size:7.5px; }
+}
+@media (max-height: 640px){
+  .brand{ display:none; }
+  .namerow{ min-height:34px; }
+}
+@media (orientation:landscape) and (max-height: 520px){
+  .topbar{ display:none; }
+  .namerow{ min-height:28px; }
+  .name{ font-size:clamp(18px, 3.6vw, 28px); }
+  .btn{ padding:6px 9px; }
+}
+
+/* ==========================================================================
+   9. ERİŞİLEBİLİRLİK — HAREKET AZALTMA
+   ========================================================================== */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration:.001ms !important;
+    animation-delay:0ms !important;
+    animation-iteration-count:1 !important;
+    transition-duration:.15s !important;
+  }
+  .pt,.leaf,.stem-path{ opacity:1 !important; transform:none !important; stroke-dashoffset:0 !important; }
+  .bloom{ opacity:1 !important; transform:scale(var(--bs,1)) !important; }
+  .flower-inner{ animation:none !important; }
+  .deco-hearts i,.deco-butterflies .bfly,.deco-sparkles i,.deco-stars i{ animation:none !important; opacity:.5 !important; }
+}
+</style>
+</head>
+<body>
+
+<canvas id="bg" aria-hidden="true"></canvas>
+<div class="vignette" aria-hidden="true"></div>
+
+<div class="app" id="app">
+
+  <div class="topbar">
+    <span class="brand">Buket Atölyesi</span>
+  </div>
+
+  <div class="stage" id="stage">
+    <div class="bstage-wrap">
+      <div class="bstage" id="bstage">
+        <div class="glow"></div>
+
+        <!-- Çiçekler buraya eklenir -->
+        <div class="bouquet" id="bouquet"></div>
+
+        <!-- Aksesuar katmanı -->
+        <div class="deco" id="decoLayer"></div>
+
+        <!-- Buket sargısı + kurdele -->
+        <div class="wrap" id="wrapEl">
+          <svg viewBox="0 0 250 180" aria-hidden="true">
+            <defs>
+              <linearGradient id="wrapGrad" x1="0" y1="0" x2="0.35" y2="1">
+                <stop offset="0%"  stop-color="#4a2438" stop-opacity="0.96"/>
+                <stop offset="45%" stop-color="#2a1220" stop-opacity="0.97"/>
+                <stop offset="100%" stop-color="#130810" stop-opacity="0.98"/>
+              </linearGradient>
+              <linearGradient id="wrapEdge" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0%"  stop-color="rgba(255,180,210,0.30)"/>
+                <stop offset="50%" stop-color="rgba(255,220,235,0.10)"/>
+                <stop offset="100%" stop-color="rgba(255,180,210,0.28)"/>
+              </linearGradient>
+              <linearGradient id="ribbonGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%"  stop-color="#f0708f"/>
+                <stop offset="50%" stop-color="#d33a63"/>
+                <stop offset="100%" stop-color="#8e1a3a"/>
+              </linearGradient>
+              <linearGradient id="ribbonGrad2" x1="0" y1="0" x2="1" y2="1">
+                <stop offset="0%"  stop-color="#ff9ab5"/>
+                <stop offset="100%" stop-color="#c22c56"/>
+              </linearGradient>
+            </defs>
+
+            <!-- Kağıt sargı -->
+            <path d="M22,6 L228,6 L162,156 Q125,178 88,156 Z" fill="url(#wrapGrad)"/>
+            <path d="M22,6 L228,6 L162,156 Q125,178 88,156 Z" fill="none" stroke="url(#wrapEdge)" stroke-width="1.4"/>
+            <path d="M22,6 L228,6" stroke="rgba(255,200,225,.45)" stroke-width="1.6" stroke-linecap="round"/>
+            <!-- Sargı iç dokusu -->
+            <path d="M60,10 L100,150" stroke="rgba(255,190,220,.06)" stroke-width="10" fill="none"/>
+            <path d="M190,10 L150,150" stroke="rgba(255,190,220,.05)" stroke-width="10" fill="none"/>
+
+            <!-- Kurdele -->
+            <g class="ribbon-g">
+              <path d="M76,86 Q125,106 174,86 L170,106 Q125,126 80,106 Z" fill="url(#ribbonGrad)"/>
+              <path d="M76,86 Q125,106 174,86" stroke="rgba(255,210,228,.6)" stroke-width="1" fill="none"/>
+
+              <!-- Fiyonk -->
+              <g transform="translate(125,106)">
+                <path d="M0,0 C-34,-20 -52,4 -34,16 C-20,26 -5,14 0,0 Z" fill="url(#ribbonGrad2)"/>
+                <path d="M0,0 C34,-20 52,4 34,16 C20,26 5,14 0,0 Z" fill="url(#ribbonGrad2)"/>
+                <path d="M0,0 C-34,-20 -52,4 -34,16" stroke="rgba(255,215,232,.55)" stroke-width="1" fill="none"/>
+                <path d="M0,0 C34,-20 52,4 34,16" stroke="rgba(255,215,232,.55)" stroke-width="1" fill="none"/>
+                <path d="M-4,10 C-16,34 -26,52 -19,57 C-10,62 -2,36 0,15 Z" fill="url(#ribbonGrad)"/>
+                <path d="M4,10 C16,34 26,52 19,57 C10,62 2,36 0,15 Z" fill="url(#ribbonGrad)"/>
+                <ellipse rx="7.5" ry="6.5" fill="#f0708f"/>
+                <ellipse rx="4" ry="3.4" fill="#ffb2c9"/>
+              </g>
+            </g>
+          </svg>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- İsim -->
+  <div class="namerow">
+    <div class="name" id="nameEl" aria-live="polite"></div>
+    <div class="hint" id="hintEl">Buketine isim ver</div>
+  </div>
+
+  <!-- Panel -->
+  <div class="panel" id="panel">
+    <div class="kb" id="kb"></div>
+
+    <div class="actions" id="actions">
+      <button class="btn" id="btnDelete" type="button">Sil</button>
+      <button class="btn primary" id="btnOk" type="button">OK</button>
+      <button class="btn" id="btnReset" type="button">Reset</button>
+      <button class="btn" id="btnRandom" type="button">Rastgele</button>
+      <button class="btn" id="btnAcc" type="button">Aksesuar</button>
+      <button class="btn" id="btnMusic" type="button">Müzik</button>
+
+      <div class="acc-panel" id="accPanel">
+        <div class="acc-title">Aksesuarlar</div>
+        <label class="acc-row">Kurdele <input type="checkbox" data-acc="ribbon" checked><span class="switch"></span></label>
+        <label class="acc-row">Kalpler <input type="checkbox" data-acc="hearts" checked><span class="switch"></span></label>
+        <label class="acc-row">Kelebekler <input type="checkbox" data-acc="butterflies"><span class="switch"></span></label>
+        <label class="acc-row">Parıltılar <input type="checkbox" data-acc="sparkles" checked><span class="switch"></span></label>
+        <label class="acc-row">Yıldızlar <input type="checkbox" data-acc="stars"><span class="switch"></span></label>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ==========================================================================
+   ÇİÇEK BUKETİ ATÖLYESİ — TAM JS MOTORU
+   ========================================================================== */
+(function(){
+  "use strict";
+
+  /* ------------------------------------------------------------------
+     1. ÇİÇEK TANIMLARI
+     ------------------------------------------------------------------ */
+  const FLOWERS = {
+    Q:{ t:'rose',     c:['#8e0f1f','#b3182c','#d4283f','#ef6076','#ffa3b3'], bs:1.00, n:'Kırmızı Gül' },
+    W:{ t:'rose',     c:['#c2185b','#e0407c','#f0629a','#f79ec1','#ffd6e6'], bs:1.00, n:'Pembe Gül' },
+    E:{ t:'rose',     c:['#cbd3da','#e2e9ef','#f3f7fa','#ffffff','#ffffff'], bs:1.00, n:'Beyaz Gül' },
+    R:{ t:'rose',     c:['#44091a','#6b1024','#8d1a35','#ad2a4a','#c94a68'], bs:1.00, n:'Bordo Gül' },
+    T:{ t:'daisy',    c:['#f8f4ea','#f0b429','#f9d97c'],                      bs:0.94, n:'Papatya' },
+    Y:{ t:'small',    c:['#f5c518','#e08a00'],                                bs:0.74, n:'Sarı Çiçek' },
+    U:{ t:'bud',      c:['#8e0f1f','#c81f36','#ee5b74'],                      bs:0.88, n:'Gül Tomurcuğu' },
+    I:{ t:'small',    c:['#f7a8c4','#ffd166'],                                bs:0.68, n:'Minik Pembe' },
+    O:{ t:'rose',     c:['#7a0f1a','#a81627','#cc2438','#e64a5c','#f58a97'], bs:1.00, n:'Yapraklı Gül' },
+    P:{ t:'lavender', c:['#8e7cc3','#b9abec'],                                bs:0.86, n:'Lavanta' },
+    A:{ t:'rose',     c:['#d98b6a','#eda57f','#f7c3a3','#ffdcc6','#fff0e4'], bs:1.00, n:'Şeftali Gül' },
+    S:{ t:'rose',     c:['#c94f52','#e06a6c','#f08a8c','#f9b3b3','#ffdada'], bs:1.00, n:'Mercan Gül' },
+    D:{ t:'rose',     c:['#ddceb2','#ecdfc6','#f8efdb','#fffaef','#ffffff'], bs:1.00, n:'Krem Gül' },
+    F:{ t:'rose',     c:['#5b2a86','#7b3fa8','#9b5cc9','#b97fe0','#d9b3f0'], bs:1.00, n:'Mor Gül' },
+    G:{ t:'rose',     c:['#a2145e','#c92a7a','#e04a99','#f07ab8','#ffb3d9'], bs:1.00, n:'Fuşya Gül' },
+    H:{ t:'cluster',  c:['#ffffff','#f2f6fa','#e8eef5'],                      bs:0.94, n:'Bebek Nefesi' },
+    J:{ t:'tulip',    c:['#c8102e','#e63946','#f4737d'],                      bs:0.92, n:'Kırmızı Lale' },
+    K:{ t:'tulip',    c:['#f28cb1','#f9b3cc','#ffd6e6'],                      bs:0.92, n:'Pembe Lale' },
+    L:{ t:'lavender', c:['#6f5fa8','#9d90d4'],                                bs:0.86, n:'Lavanta' },
+    Z:{ t:'small',    c:['#6aa9e0','#cfe6f7'],                                bs:0.70, n:'Mavi Çiçek' },
+    X:{ t:'rose',     c:['#c25a00','#e07a1f','#f59a3f','#f7b968','#ffd9a0'], bs:1.00, n:'Turuncu Gül' },
+    C:{ t:'cluster',  c:['#f7a8c4','#ffd1e0','#ffb6cf'],                      bs:0.92, n:'Mini Gül Demeti' },
+    V:{ t:'small',    c:['#8e6ec9','#c9b6ea'],                                bs:0.70, n:'Menekşe' },
+    B:{ t:'rose',     c:['#e8a0a8','#f2bcc2','#f9d6da','#ffe8ea','#fff5f6'], bs:1.00, n:'Pudra Gül' },
+    N:{ t:'daisy',    c:['#f5b301','#5a3a10','#8a5a20'],                      bs:0.94, n:'Ayçiçeği' },
+    M:{ t:'small',    c:['#ff7a9c','#ffd166'],                                bs:0.70, n:'Kır Çiçeği' }
+  };
+
+  /* ------------------------------------------------------------------
+     2. SVG ÇİÇEK ÜRETİCİLERİ
+     ------------------------------------------------------------------ */
+  const RENDER = {};
+
+  /* --- Gül: katman katman açılan taç yapraklar --- */
+  RENDER.rose = function(c){
+    const rings = [
+      { n:8, s:1.00, rot:0,  col:c[0] },
+      { n:7, s:0.76, rot:26, col:c[1] },
+      { n:6, s:0.55, rot:12, col:c[2] },
+      { n:5, s:0.36, rot:44, col:c[3] }
+    ];
+    const total = rings.reduce((a,r)=>a+r.n, 0);
+    let out = '', k = 0;
+
+    rings.forEach(function(r){
+      for(let i=0;i<r.n;i++){
+        const a = r.rot + i*360/r.n;
+        const d = (1.00 + (k/total)*1.05).toFixed(2);
+        out += '<g transform="rotate(' + a.toFixed(1) + ') scale(' + r.s + ')">'
+             +   '<g class="pt" style="animation-delay:' + d + 's">'
+             +     '<path d="M0,0 C-19,-7 -27,-33 0,-47 C27,-33 19,-7 0,0 Z" '
+             +       'fill="' + r.col + '" stroke="rgba(0,0,0,.20)" stroke-width=".62"/>'
+             +   '</g>'
+             + '</g>';
+        k++;
+      }
+    });
+
+    out += '<g class="pt" style="animation-delay:2.18s">'
+         +   '<circle r="7.5" fill="' + c[3] + '"/>'
+         +   '<circle r="4" fill="' + (c[4]||c[3]) + '" opacity=".85"/>'
+         + '</g>';
+    return out;
+  };
+
+  /* --- Papatya: merkezden dışa açılan ince yapraklar --- */
+  RENDER.daisy = function(c){
+    let out = '';
+    const n = 14;
+    for(let i=0;i<n;i++){
+      const a = i*360/n;
+      const d = (0.95 + (i/n)*0.95).toFixed(2);
+      out += '<g transform="rotate(' + a.toFixed(1) + ')">'
+           +   '<g class="pt" style="animation-delay:' + d + 's">'
+           +     '<path d="M0,-4 C-7,-14 -7,-38 0,-45 C7,-38 7,-14 0,-4 Z" '
+           +       'fill="' + c[0] + '" stroke="rgba(0,0,0,.09)" stroke-width=".5"/>'
+           +   '</g>'
+           + '</g>';
+    }
+    out += '<g class="pt" style="animation-delay:2.0s">'
+         +   '<circle r="12.5" fill="' + c[1] + '"/>'
+         +   '<circle r="12.5" fill="none" stroke="rgba(0,0,0,.12)" stroke-width=".8"/>'
+         +   '<circle r="7" fill="' + (c[2]||c[1]) + '" opacity=".9"/>'
+         + '</g>';
+    return out;
+  };
+
+  /* --- Küçük 5 yapraklı çiçek --- */
+  RENDER.small = function(c){
+    let out = '';
+    for(let i=0;i<5;i++){
+      const a = i*72;
+      const d = (1.00 + i*0.09).toFixed(2);
+      out += '<g transform="rotate(' + a + ')">'
+           +   '<g class="pt" style="animation-delay:' + d + 's">'
+           +     '<path d="M0,-3 C-13,-9 -17,-28 0,-35 C17,-28 13,-9 0,-3 Z" '
+           +       'fill="' + c[0] + '" stroke="rgba(0,0,0,.09)" stroke-width=".5"/>'
+           +   '</g>'
+           + '</g>';
+    }
+    out += '<g class="pt" style="animation-delay:1.72s">'
+         +   '<circle r="8" fill="' + c[1] + '"/>'
+         +   '<circle r="4.5" fill="rgba(255,255,255,.35)"/>'
+         + '</g>';
+    return out;
+  };
+
+  /* --- Lale --- */
+  RENDER.tulip = function(c){
+    let out = '';
+    out += '<g class="pt" style="animation-delay:1.00s">'
+         +   '<path d="M0,16 C-26,4 -28,-28 0,-44 C28,-28 26,4 0,16 Z" fill="' + c[0] + '" stroke="rgba(0,0,0,.13)" stroke-width=".6"/>'
+         + '</g>';
+    out += '<g class="pt" style="animation-delay:1.24s">'
+         +   '<path d="M-24,-4 C-32,-24 -20,-42 -3,-44 C-10,-28 -10,-16 -24,-4 Z" fill="' + c[1] + '"/>'
+         + '</g>';
+    out += '<g class="pt" style="animation-delay:1.34s">'
+         +   '<path d="M24,-4 C32,-24 20,-42 3,-44 C10,-28 10,-16 24,-4 Z" fill="' + c[2] + '"/>'
+         + '</g>';
+    out += '<g class="pt" style="animation-delay:1.46s">'
+         +   '<path d="M0,10 C-9,0 -9,-24 0,-40 C9,-24 9,0 0,10 Z" fill="' + c[2] + '" opacity=".5"/>'
+         + '</g>';
+    return out;
+  };
+
+  /* --- Lavanta: küçük çiçekler sırayla --- */
+  RENDER.lavender = function(c){
+    let out = '';
+    for(let i=0;i<10;i++){
+      const y = 32 - i*7;
+      const rx = 6.6 - i*0.40;
+      const d = (1.00 + i*0.085).toFixed(2);
+      const col = (i % 2) ? c[0] : c[1];
+      out += '<g transform="translate(0,' + y.toFixed(1) + ')">'
+           +   '<g class="pt" style="animation-delay:' + d + 's">'
+           +     '<ellipse rx="' + rx.toFixed(1) + '" ry="' + (rx*1.35).toFixed(1) + '" fill="' + col + '" opacity=".96"/>'
+           +   '</g>'
+           + '</g>';
+    }
+    out += '<g transform="translate(0,-40)">'
+         +   '<g class="pt" style="animation-delay:2.0s">'
+         +     '<ellipse rx="2.8" ry="4.6" fill="' + c[1] + '"/>'
+         +   '</g>'
+         + '</g>';
+    return out;
+  };
+
+  /* --- Bebek nefesi / küçük demet --- */
+  RENDER.cluster = function(c){
+    const pts = [
+      [0,-34],[-13,-24],[13,-24],[-22,-8],[22,-8],[-8,-6],[8,-6],
+      [0,6],[-16,12],[16,12],[0,24],[-26,-2],[26,-2],[-6,-40],[6,-40]
+    ];
+    let out = '<g class="pt" style="animation-delay:.92s">'
+            +   '<path d="M0,36 C-6,14 -6,-14 0,-38" stroke="#3d7a4d" stroke-width="1.6" fill="none" stroke-linecap="round"/>'
+            + '</g>';
+    for(let i=0;i<pts.length;i++){
+      const d = (1.00 + i*0.062).toFixed(2);
+      const r = 3.1 + (i % 3)*0.9;
+      out += '<g transform="translate(' + pts[i][0] + ',' + pts[i][1] + ')">'
+           +   '<g class="pt" style="animation-delay:' + d + 's">'
+           +     '<circle r="' + r.toFixed(1) + '" fill="' + c[i % c.length] + '"/>'
+           +     '<circle r="' + (r*0.45).toFixed(1) + '" fill="rgba(0,0,0,.06)"/>'
+           +   '</g>'
+           + '</g>';
+    }
+    return out;
+  };
+
+  /* --- Gül tomurcuğu --- */
+  RENDER.bud = function(c){
+    let out = '';
+    out += '<g class="pt" style="animation-delay:.95s">'
+         +   '<path d="M0,26 C-22,14 -24,-14 0,-38 C24,-14 22,14 0,26 Z" fill="' + c[0] + '" stroke="rgba(0,0,0,.15)" stroke-width=".6"/>'
+         + '</g>';
+    out += '<g class="pt" style="animation-delay:1.20s">'
+         +   '<path d="M0,18 C-13,8 -15,-12 0,-32 C15,-12 13,8 0,18 Z" fill="' + c[1] + '"/>'
+         + '</g>';
+    out += '<g class="pt" style="animation-delay:1.46s">'
+         +   '<path d="M0,8 C-7,2 -8,-10 0,-24 C8,-10 7,2 0,8 Z" fill="' + c[2] + '"/>'
+         + '</g>';
+    return out;
+  };
+
+  /* ------------------------------------------------------------------
+     3. SVG YARDIMCILARI
+     ------------------------------------------------------------------ */
+  function bloomSVG(cfg){
+    const fn = RENDER[cfg.t] || RENDER.rose;
+    return '<svg viewBox="-50 -50 100 100" aria-hidden="true">' + fn(cfg.c) + '</svg>';
+  }
+
+  function previewSVG(cfg){
+    const fn = RENDER[cfg.t] || RENDER.rose;
+    return '<svg viewBox="-50 -50 100 100" aria-hidden="true">' + fn(cfg.c) + '</svg>';
+  }
+
+  function stemSVG(seed){
+    const bend = ((seed * 37) % 13 - 6) * 0.85;
+    let out = '';
+
+    /* Gövde */
+    out += '<path class="stem-path" pathLength="1" '
+         +   'd="M60,338 C' + (60 + bend).toFixed(1) + ',250 ' + (60 - bend).toFixed(1) + ',170 60,72" '
+         +   'fill="none" stroke="#2f5d3a" stroke-width="4.4" stroke-linecap="round"/>';
+
+    /* Yapraklar */
+    const spots = [
+      { y:252, side:-1, s:1.00, d:0.34 },
+      { y:198, side: 1, s:0.86, d:0.50 },
+      { y:148, side:-1, s:0.70, d:0.66 }
+    ];
+    spots.forEach(function(sp){
+      const rot = sp.side * 56;
+      out += '<g transform="translate(60,' + sp.y + ')">'
+           +   '<g class="leaf" style="animation-delay:' + sp.d + 's">'
+           +     '<path transform="rotate(' + rot + ') scale(' + sp.s + ')" '
+           +       'd="M0,0 C-13,-6 -19,-25 -9,-37 C3,-29 7,-11 0,0 Z" fill="#356b45"/>'
+           +     '<path transform="rotate(' + rot + ') scale(' + sp.s + ')" '
+           +       'd="M0,0 C-4,-8 -4,-22 -1,-33" stroke="#4e8f60" stroke-width="1.1" fill="none" opacity=".7"/>'
+           +   '</g>'
+           + '</g>';
+    });
+
+    return out;
+  }
+
+  /* ------------------------------------------------------------------
+     4. DURUM
+     ------------------------------------------------------------------ */
+  const state = {
+    items: [],           // { id, ch, el, jr, jy, ord }
+    seq: 0,
+    maxFlowers: 18,
+    accessories: {
+      ribbon: true,
+      hearts: true,
+      butterflies: false,
+      sparkles: true,
+      stars: false
+    }
+  };
+
+  const app       = document.getElementById('app');
+  const stageEl   = document.getElementById('stage');
+  const bstage    = document.getElementById('bstage');
+  const bouquetEl = document.getElementById('bouquet');
+  const nameEl    = document.getElementById('nameEl');
+  const hintEl    = document.getElementById('hintEl');
+  const kbEl      = document.getElementById('kb');
+  const decoLayer = document.getElementById('decoLayer');
+  const wrapEl    = document.getElementById('wrapEl');
+  const accPanel  = document.getElementById('accPanel');
+  const toastEl   = document.getElementById('toast');
+
+  /* ------------------------------------------------------------------
+     5. KLAVYE OLUŞTURMA
+     ------------------------------------------------------------------ */
+  const ROWS = ['QWERTYUIOP', 'ASDFGHJKL', 'ZXCVBNM'];
+
+  function buildKeyboard(){
+    let html = '';
+    ROWS.forEach(function(row){
+      html += '<div class="kb-row">';
+      for(let i=0;i<row.length;i++){
+        const ch = row[i];
+        const cfg = FLOWERS[ch];
+        const glow = cfg.c[Math.min(2, cfg.c.length-1)];
+        html += '<button class="key" type="button" data-k="' + ch + '" '
+              + 'aria-label="' + ch + ' — ' + cfg.n + '" '
+              + 'style="--c:' + glow + '">'
+              +   '<span class="preview">' + previewSVG(cfg) + '</span>'
+              +   '<span class="letter">' + ch + '</span>'
+              + '</button>';
+      }
+      html += '</div>';
+    });
+    kbEl.innerHTML = html;
+
+    kbEl.addEventListener('click', function(e){
+      const btn = e.target.closest('.key');
+      if(!btn) return;
+      pressKey(btn.dataset.k);
+    });
+  }
+
+  /* ------------------------------------------------------------------
+     6. ÇİÇEK EKLEME / SİLME / YERLEŞİM
+     ------------------------------------------------------------------ */
+  function pressKey(ch){
+    if(!FLOWERS[ch]) return;
+    if(state.items.length >= state.maxFlowers){
+      shakePanel();
+      return;
+    }
+    addFlower(ch);
+    addLetter(ch);
+    if(state.musicOn) chime();
+  }
+
+  function addFlower(ch){
+    const cfg = FLOWERS[ch];
+    const id = ++state.seq;
+
+    const el = document.createElement('div');
+    el.className = 'flower';
+    el.dataset.id = 'f' + id;
+
+    const jr  = (Math.random() - 0.5) * 7;
+    const jy  = Math.random() * 16;
+    const ord = Math.random();
+
+    el.style.setProperty('--jy', jy.toFixed(1) + 'px');
+    el.style.setProperty('--sway', (4.6 + Math.random()*2.6).toFixed(1) + 's');
+    el.innerHTML =
+      '<div class="flower-inner">'
+      + '<svg class="stem" viewBox="0 0 120 340" aria-hidden="true">' + stemSVG(id) + '</svg>'
+      + '<div class="bloom" style="--bs:' + (cfg.bs || 1) + '">' + bloomSVG(cfg) + '</div>'
+      + '</div>';
+
+    bouquetEl.appendChild(el);
+
+    const item = { id:id, ch:ch, el:el, jr:jr, jy:jy, ord:ord };
+    state.items.push(item);
+    layoutBouquet();
+    clearFinal();
+    return item;
+  }
+
+  function layoutBouquet(){
+    const n = state.items.length;
+    if(!n) return;
+
+    /* Sıralama: rastgele "ord" ile doğal dağılım */
+    const sorted = state.items.slice().sort(function(a,b){
+      return (a.ord - b.ord) || (a.id - b.id);
+    });
+
+    const spread = Math.min(78, 42 + n * 4.2);
+
+    sorted.forEach(function(it, i){
+      const t = (n === 1) ? 0.5 : i / (n - 1);
+      const ang = (t - 0.5) * spread + it.jr;
+      it.el.style.setProperty('--rot', ang.toFixed(2) + 'deg');
+
+      /* Merkezdeki çiçekler önde */
+      const z = 400 - Math.round(Math.abs(t - 0.5) * 300);
+      it.el.style.zIndex = String(z);
+    });
+  }
+
+  function removeLastFlower(){
+    if(!state.items.length) return null;
+    const it = state.items.pop();
+    const el = it.el;
+    el.classList.add('out');
+    el.style.pointerEvents = 'none';
+    window.setTimeout(function(){
+      if(el.parentNode) el.parentNode.removeChild(el);
+    }, 540);
+    layoutBouquet();
+    clearFinal();
+    return it;
+  }
+
+  function resetAll(){
+    state.items.forEach(function(it){
+      const el = it.el;
+      el.classList.add('out');
+      window.setTimeout(function(){
+        if(el.parentNode) el.parentNode.removeChild(el);
+      }, 520);
+    });
+    state.items = [];
+    nameEl.innerHTML = '';
+    hintEl.classList.remove('hide');
+    clearFinal();
+    hideToast();
+  }
+
+  /* ------------------------------------------------------------------
+     7. İSİM YÖNETİMİ
+     ------------------------------------------------------------------ */
+  function addLetter(ch){
+    const s = document.createElement('span');
+    s.textContent = ch;
+    nameEl.appendChild(s);
+    hintEl.classList.add('hide');
+  }
+
+  function removeLetter(){
+    const last = nameEl.lastElementChild;
+    if(!last) return;
+    last.classList.add('out');
+    window.setTimeout(function(){
+      if(last.parentNode) last.parentNode.removeChild(last);
+      if(!nameEl.children.length) hintEl.classList.remove('hide');
+    }, 320);
+  }
+
+  /* ------------------------------------------------------------------
+     8. FİNAL ANİMASYONU
+     ------------------------------------------------------------------ */
+  function runFinal(){
+    if(!state.items.length){
+      showToast('Önce birkaç çiçek ekle 🌹');
+      return;
+    }
+    app.classList.add('final');
+    decoLayer.classList.add('final-burst');
+    burstSparkles();
+    window.setTimeout(function(){
+      showToast('Senin için özenle oluşturulmuş küçük bir güzellik. 🌹');
+    }, 1100);
+  }
+
+  function clearFinal(){
+    if(app.classList.contains('final')){
+      app.classList.remove('final');
+      hideToast();
+    }
+  }
+
+  let toastTimer = null;
+  function showToast(msg){
+    toastEl.textContent = msg;
+    toastEl.classList.add('show');
+    if(toastTimer) window.clearTimeout(toastTimer);
+  }
+  function hideToast(){
+    toastEl.classList.remove('show');
+    if(toastTimer) window.clearTimeout(toastTimer);
+  }
+
+  function burstSparkles(){
+    const layer = document.createElement('div');
+    layer.className = 'burst-layer';
+    layer.style.cssText = 'position:absolute;inset:0;pointer-events:none;z-index:700;';
+
+    for(let i=0;i<48;i++){
+      const s = document.createElement('i');
+      const size = 2 + Math.random()*3.5;
+      s.style.cssText =
+        'position:absolute;'
+        + 'left:' + (22 + Math.random()*56) + '%;'
+        + 'bottom:' + (12 + Math.random()*72) + '%;'
+        + 'width:' + size.toFixed(1) + 'px;'
+        + 'height:' + size.toFixed(1) + 'px;'
+        + 'border-radius:50%;'
+        + 'background:#ffd9e6;'
+        + 'box-shadow:0 0 ' + (6+size*2).toFixed(0) + 'px ' + (1+size*0.4).toFixed(1) + 'px rgba(255,120,170,.9);'
+        + 'opacity:0;'
+        + 'animation:riseSpark 2.8s cubic-bezier(.2,.7,.4,1) ' + (Math.random()*1.3).toFixed(2) + 's forwards;'
+        + '--dx:' + ((Math.random()-0.5)*130).toFixed(0) + 'px;';
+      layer.appendChild(s);
+    }
+
+    bstage.appendChild(layer);
+    window.setTimeout(function(){
+      if(layer.parentNode) layer.parentNode.removeChild(layer);
+    }, 4600);
+  }
+
+  /* riseSpark keyframes'i dinamik ekle */
+  (function injectKeyframes(){
+    const st = document.createElement('style');
+    st.textContent =
+      '@keyframes riseSpark{'
+      + '0%{opacity:0;transform:translate(0,0) scale(.2);}'
+      + '12%{opacity:1;transform:translate(0,-14px) scale(1);}'
+      + '70%{opacity:.85;}'
+      + '100%{opacity:0;transform:translate(var(--dx),-240px) scale(.15);}'
+      + '}'
+      + '@keyframes shakePanel{'
+      + '0%,100%{transform:translateX(0);}'
+      + '20%{transform:translateX(-6px);}'
+      + '40%{transform:translateX(6px);}'
+      + '60%{transform:translateX(-4px);}'
+      + '80%{transform:translateX(4px);}'
+      + '}';
+    document.head.appendChild(st);
+  })();
+
+  function shakePanel(){
+    const p = document.getElementById('panel');
+    p.style.animation = 'none';
+    void p.offsetWidth;
+    p.style.animation = 'shakePanel .42s ease';
+    window.setTimeout(function(){ p.style.animation = ''; }, 460);
+  }
+
+  /* ------------------------------------------------------------------
+     9. AKSESUARLAR
+     ------------------------------------------------------------------ */
+  function buildDeco(){
+    let html = '';
+
+    /* Kalpler */
+    html += '<div class="deco-hearts" id="decHearts">';
+    for(let i=0;i<7;i++){
+      html += '<i style="--x:' + (14 + Math.random()*72).toFixed(1) + '%;'
+            + '--y:' + (14 + Math.random()*44).toFixed(1) + '%;'
+            + '--dur:' + (8 + Math.random()*6).toFixed(1) + 's;'
+            + '--del:' + (Math.random()*8).toFixed(1) + 's;"></i>';
+    }
+    html += '</div>';
+
+    /* Kelebekler */
+    html += '<div class="deco-butterflies" id="decBfly">';
+    for(let i=0;i<4;i++){
+      html += '<div class="bfly" style="--x:' + (18 + Math.random()*64).toFixed(1) + '%;'
+            + '--y:' + (22 + Math.random()*40).toFixed(1) + '%;'
+            + '--dur:' + (12 + Math.random()*7).toFixed(1) + 's;'
+            + '--del:' + (Math.random()*9).toFixed(1) + 's;'
+            + '--dx:' + ((Math.random()-0.5)*70).toFixed(0) + 'px;">'
+            + '<span></span><span></span></div>';
+    }
+    html += '</div>';
+
+    /* Parıltılar */
+    html += '<div class="deco-sparkles" id="decSpark">';
+    for(let i=0;i<22;i++){
+      html += '<i style="--x:' + (10 + Math.random()*80).toFixed(1) + '%;'
+            + '--y:' + (10 + Math.random()*76).toFixed(1) + '%;'
+            + '--dur:' + (2.6 + Math.random()*3.4).toFixed(1) + 's;'
+            + '--del:' + (Math.random()*4).toFixed(1) + 's;"></i>';
+    }
+    html += '</div>';
+
+    /* Yıldızlar */
+    html += '<div class="deco-stars" id="decStars">';
+    for(let i=0;i<12;i++){
+      html += '<i style="--x:' + (8 + Math.random()*84).toFixed(1) + '%;'
+            + '--y:' + (18 + Math.random()*70).toFixed(1) + '%;'
+            + '--dur:' + (4.5 + Math.random()*4).toFixed(1) + 's;'
+            + '--del:' + (Math.random()*5).toFixed(1) + 's;"></i>';
+    }
+    html += '</div>';
+
+    decoLayer.innerHTML = html;
+  }
+
+  function applyAccessories(){
+    const a = state.accessories;
+
+    const h = document.getElementById('decHearts');
+    const b = document.getElementById('decBfly');
+    const s = document.getElementById('decSpark');
+    const t = document.getElementById('decStars');
+
+    if(h) h.classList.toggle('on', a.hearts);
+    if(b) b.classList.toggle('on', a.butterflies);
+    if(s) s.classList.toggle('on', a.sparkles);
+    if(t) t.classList.toggle('on', a.stars);
+
+    wrapEl.style.opacity = a.ribbon ? '1' : '0';
+    wrapEl.style.transition = 'opacity .5s ease';
+  }
+
+  /* ------------------------------------------------------------------
+     10. ARKA PLAN PARÇACIKLARI
+     ------------------------------------------------------------------ */
+  const bgCanvas = document.getElementById('bg');
+  const bgCtx = bgCanvas.getContext('2d');
+  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  let W = 0, H = 0, DPR = 1;
+  let particles = [];
+  let sprite = null;
+
+  function makeSprite(){
+    const c = document.createElement('canvas');
+    c.width = c.height = 32;
+    const g = c.getContext('2d');
+    const grd = g.createRadialGradient(16,16,0, 16,16,16);
+    grd.addColorStop(0,   'rgba(255,225,238,1)');
+    grd.addColorStop(0.35,'rgba(255,150,190,0.42)');
+    grd.addColorStop(1,   'rgba(255,120,170,0)');
+    g.fillStyle = grd;
+    g.fillRect(0,0,32,32);
+    return c;
+  }
+
+  function resizeBG(){
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = window.innerWidth;
+    H = window.innerHeight;
+    bgCanvas.width  = Math.floor(W * DPR);
+    bgCanvas.height = Math.floor(H * DPR);
+    bgCanvas.style.width  = W + 'px';
+    bgCanvas.style.height = H + 'px';
+    bgCtx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    buildParticles();
+  }
+
+  function buildParticles(){
+    particles = [];
+    const count = W < 620 ? 38 : 74;
+    for(let i=0;i<count;i++){
+      particles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.9 + 0.35,
+        vy: -(Math.random() * 0.16 + 0.035),
+        vx: (Math.random() - 0.5) * 0.08,
+        a: Math.random() * 0.45 + 0.12,
+        ph: Math.random() * Math.PI * 2
+      });
+    }
+  }
+
+  function drawBG(){
+    bgCtx.clearRect(0, 0, W, H);
+
+    for(let i=0;i<particles.length;i++){
+      const p = particles[i];
+      p.y += p.vy;
+      p.x += p.vx + Math.sin(p.ph) * 0.05;
+      p.ph += 0.009;
+
+      if(p.y < -30){ p.y = H + 30; p.x = Math.random() * W; }
+      if(p.x < -30) p.x = W + 30;
+      if(p.x > W + 30) p.x = -30;
+
+      const alpha = p.a * (0.6 + 0.4 * Math.sin(p.ph * 2));
+      const size = p.r * 9;
+      bgCtx.globalAlpha = Math.max(0, alpha);
+      bgCtx.drawImage(sprite, p.x - size/2, p.y - size/2, size, size);
+    }
+
+    bgCtx.globalAlpha = 1;
+    requestAnimationFrame(drawBG);
+  }
+
+  /* ------------------------------------------------------------------
+     11. SES / MÜZİK
+     ------------------------------------------------------------------ */
+  let actx = null, master = null, delayNode = null, wetGain = null;
+  let musicTimer = null;
+  let musicOn = false;
+  state.musicOn = false;
+
+  function ensureAudio(){
+    if(actx) {
+      if(actx.state === 'suspended') actx.resume();
+      return;
+    }
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if(!AC) return;
+
+    actx = new AC();
+
+    master = actx.createGain();
+    master.gain.value = 0.15;
+    master.connect(actx.destination);
+
+    delayNode = actx.createDelay(1.0);
+    delayNode.delayTime.value = 0.34;
+
+    const fb = actx.createGain();
+    fb.gain.value = 0.34;
+
+    wetGain = actx.createGain();
+    wetGain.gain.value = 0.34;
+
+    delayNode.connect(fb);
+    fb.connect(delayNode);
+    delayNode.connect(wetGain);
+    wetGain.connect(actx.destination);
+  }
+
+  function playNote(freq, when, dur, vol, type){
+    if(!actx) return;
+    const t = when || actx.currentTime;
+    const o = actx.createOscillator();
+    const g = actx.createGain();
+
+    o.type = type || 'sine';
+    o.frequency.value = freq;
+
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(vol, 0.0002), t + 0.09);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+    o.connect(g);
+    g.connect(master);
+    if(delayNode) g.connect(delayNode);
+
+    o.start(t);
+    o.stop(t + dur + 0.15);
+  }
+
+  const SCALE = [440.00, 523.25, 587.33, 659.25, 783.99, 880.00, 1046.50];
+
+  function musicTick(){
+    if(!musicOn || !actx) return;
+    const t = actx.currentTime;
+    const f = SCALE[Math.floor(Math.random() * SCALE.length)];
+
+    playNote(f, t, 2.4, 0.09);
+    if(Math.random() < 0.30) playNote(f / 2, t, 3.2, 0.06, 'triangle');
+    if(Math.random() < 0.18) playNote(f * 1.5, t + 0.28, 1.6, 0.035);
+
+    musicTimer = window.setTimeout(musicTick, 520 + Math.random() * 460);
+  }
+
+  function chime(){
+    if(!actx) return;
+    const f = 880 + Math.random() * 420;
+    playNote(f, actx.currentTime, 0.75, 0.045);
+  }
+
+  function toggleMusic(){
+    ensureAudio();
+    if(!actx) return;
+
+    musicOn = !musicOn;
+    state.musicOn = musicOn;
+
+    const btn = document.getElementById('btnMusic');
+    btn.classList.toggle('on', musicOn);
+
+    if(musicOn){
+      actx.resume();
+      musicTick();
+    } else {
+      if(musicTimer) window.clearTimeout(musicTimer);
+      musicTimer = null;
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     12. RASTGELE BUKET
+     ------------------------------------------------------------------ */
+  const RANDOM_WORDS = ['SENI','ASK','GUL','CANIM','MELEK','YILDIZ','ROSE','LOVE','SEN','CICEK'];
+
+  function randomBouquet(){
+    resetAll();
+
+    window.setTimeout(function(){
+      let word = RANDOM_WORDS[Math.floor(Math.random() * RANDOM_WORDS.length)];
+
+      /* Rastgele harflerle zenginleştir */
+      if(Math.random() < 0.5){
+        const letters = 'QWERTYUIOPASDFGHJKLZXCVBNM';
+        let extra = '';
+        const extraCount = 3 + Math.floor(Math.random() * 4);
+        for(let i=0;i<extraCount;i++){
+          extra += letters[Math.floor(Math.random() * letters.length)];
+        }
+        word = word + extra;
+      }
+
+      const chars = word.split('');
+      let i = 0;
+
+      (function step(){
+        if(i >= chars.length) return;
+        pressKey(chars[i]);
+        i++;
+        window.setTimeout(step, 190);
+      })();
+    }, 420);
+  }
+
+  /* ------------------------------------------------------------------
+     13. ÖLÇEKLEME
+     ------------------------------------------------------------------ */
+  function fit(){
+    const availW = Math.max(stageEl.clientWidth - 16, 100);
+    const availH = Math.max(stageEl.clientHeight - 8, 100);
+
+    const s = Math.min(availW / 600, availH / 420, 1.12);
+
+    document.documentElement.style.setProperty('--s', Math.max(s, 0.16).toFixed(4));
+  }
+
+  /* ------------------------------------------------------------------
+     14. OLAY BAĞLAMA
+     ------------------------------------------------------------------ */
+  function bindEvents(){
+    /* DELETE */
+    document.getElementById('btnDelete').addEventListener('click', function(){
+      if(!state.items.length) return;
+      removeLastFlower();
+      removeLetter();
+    });
+
+    /* OK */
+    document.getElementById('btnOk').addEventListener('click', runFinal);
+
+    /* RESET */
+    document.getElementById('btnReset').addEventListener('click', resetAll);
+
+    /* RANDOM */
+    document.getElementById('btnRandom').addEventListener('click', randomBouquet);
+
+    /* MUSIC */
+    document.getElementById('btnMusic').addEventListener('click', toggleMusic);
+
+    /* ACCESSORIES */
+    const btnAcc = document.getElementById('btnAcc');
+    btnAcc.addEventListener('click', function(e){
+      e.stopPropagation();
+      const open = accPanel.classList.toggle('open');
+      btnAcc.classList.toggle('on', open);
+    });
+
+    document.addEventListener('click', function(e){
+      if(!accPanel.classList.contains('open')) return;
+      if(accPanel.contains(e.target) || e.target === btnAcc) return;
+      accPanel.classList.remove('open');
+      btnAcc.classList.remove('on');
+    });
+
+    /* Aksesuar switch'leri */
+    accPanel.addEventListener('change', function(e){
+      const input = e.target;
+      if(!input.dataset.acc) return;
+      state.accessories[input.dataset.acc] = input.checked;
+      applyAccessories();
+    });
+
+    /* Fiziksel klavye */
+    document.addEventListener('keydown', function(e){
+      if(e.metaKey || e.ctrlKey || e.altKey) return;
+
+      const k = e.key;
+
+      if(k === 'Backspace'){
+        e.preventDefault();
+        if(state.items.length){
+          removeLastFlower();
+          removeLetter();
+        }
+        return;
+      }
+      if(k === 'Enter'){
+        e.preventDefault();
+        runFinal();
+        return;
+      }
+      if(k === 'Escape'){
+        accPanel.classList.remove('open');
+        btnAcc.classList.remove('on');
+        return;
+      }
+
+      const up = k.toUpperCase();
+      if(up.length === 1 && FLOWERS[up]){
+        e.preventDefault();
+        pressKey(up);
+      }
+    });
+
+    /* Pencere boyutu */
+    window.addEventListener('resize', function(){
+      resizeBG();
+      fit();
+    });
+
+    window.addEventListener('orientationchange', function(){
+      window.setTimeout(function(){
+        resizeBG();
+        fit();
+      }, 220);
+    });
+
+    if(window.ResizeObserver){
+      const ro = new ResizeObserver(function(){ fit(); });
+      ro.observe(stageEl);
+    }
+  }
+
+  /* ------------------------------------------------------------------
+     15. BAŞLAT
+     ------------------------------------------------------------------ */
+  function init(){
+    sprite = makeSprite();
+    resizeBG();
+    requestAnimationFrame(drawBG);
+
+    buildKeyboard();
+    buildDeco();
+    bindEvents();
+    applyAccessories();
+    fit();
+
+    window.setTimeout(fit, 120);
+    window.setTimeout(fit, 480);
+
+    /* Açılışta küçük bir karşılama buketi */
+    window.setTimeout(function(){
+      ['Q','P','E'].forEach(function(ch, i){
+        window.setTimeout(function(){
+          pressKey(ch);
+        }, i * 380);
+      });
+    }, 700);
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  /* Azaltılmış hareket tercihi değişirse */
+  if(window.matchMedia){
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)');
+    if(mq.addEventListener){
+      mq.addEventListener('change', function(){ /* CSS otomatik uygular */ });
+    }
+  }
+
+})();
+</script>
+</body>
+</html>
